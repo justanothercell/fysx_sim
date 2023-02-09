@@ -67,7 +67,7 @@ macro_rules! text(
     )
 );
 
-pub(crate) fn render(world: &World, window: &mut SDLWindow, paused: bool, delta: f32) {
+pub(crate) fn render(world: &World, window: &mut SDLWindow, paused: bool, delta: f32, particles: usize) {
     window.canvas.set_draw_color(Color::RGB(0, 0, 0));
     window.canvas.clear();
 
@@ -81,7 +81,7 @@ pub(crate) fn render(world: &World, window: &mut SDLWindow, paused: bool, delta:
     }
 
     text!(window, 10, 10,
-        &format!("{:3.1}mspt {:6.1}tps {}",
+        &format!("{:3.1}mspt {:6.1}tps {} p: {particles}",
             delta / 1000.0, 1000_000.0 / delta as f32,
             if paused { "paused".to_string() } else { format!("") }
         ), (255, 255, 255));

@@ -16,8 +16,8 @@ mod simulation;
 mod util;
 
 fn main() {
-    let mut world = World::new(200, 200);
-    let mut window = SDLWindow::new(200, 200);
+    let world = World::new(400, 400);
+    let window = SDLWindow::new(400, 400);
     run(world, window);
 }
 
@@ -28,6 +28,7 @@ fn run(mut world: World, mut window: SDLWindow) {
     let mut elapsed = 1;
     let mut paused = false;
     let mut frame_count = 0usize;
+    let mut particles = 0;
     loop {
         if let Some(event) = window.event_pump.poll_event() {
             match event {
@@ -57,7 +58,8 @@ fn run(mut world: World, mut window: SDLWindow) {
                             0.0,
                             0.0,
                             hsv_to_rgb(start.elapsed().as_millis() as f32 / 50.0 % 360.0, 1.0, 1.0)
-                        ))
+                        ));
+                        particles += 1;
                     }
                 }
             }
@@ -65,7 +67,7 @@ fn run(mut world: World, mut window: SDLWindow) {
                 tick(&mut world, elapsed as f32);
             }
         }
-        render(&world, &mut window, paused, elapsed as f32);
+        render(&world, &mut window, paused, elapsed as f32, particles);
         elapsed = time.elapsed().as_micros();
         frame_count = frame_count.wrapping_add(1);
         time = std::time::Instant::now();
