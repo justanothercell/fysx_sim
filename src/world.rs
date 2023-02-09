@@ -14,10 +14,10 @@ impl Particle {
         Self {
             x,
             y,
-            px: x,
-            py: y,
-            ax,
-            ay,
+            px: x - ax,
+            py: y - ay,
+            ax: 0.0,
+            ay: 0.0,
             color,
         }
     }

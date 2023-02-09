@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use rayon::prelude::*;
 use crate::util::mutate;
 use crate::world::{Particle, World};
@@ -22,6 +23,7 @@ pub(crate) fn tick(world: &mut World, delta_micro: f32) {
         });
 
         let response_coef = 0.75;
+        let min_dist_sq = 1.2f32; // r = 0.5
         // collisions on odd columns
         (1..world.cells.len()-1).into_par_iter().step_by(2).for_each(|x| {
             for y in 1..(world.cells[x].len()-1) {
@@ -40,12 +42,11 @@ pub(crate) fn tick(world: &mut World, delta_micro: f32) {
                                 let dx = p1.x - p2.x;
                                 let dy = p1.y - p2.y;
                                 let dsq = dx * dx + dy * dy;
-                                // min_dist = 1, r = 0.5
                                 if dsq < 1.0 {
                                     let d = dsq.sqrt();
                                     let nx = dx / d;
                                     let ny = dy / d;
-                                    let dm = 0.5 * response_coef * (d - 1.0);
+                                    let dm = 0.5 * response_coef * (d - min_dist_sq.sqrt());
                                     p1.x -= nx * 0.5 * dm;
                                     p1.y -= ny * 0.5 * dm;
                                     p2.x += nx * 0.5 * dm;
@@ -75,12 +76,11 @@ pub(crate) fn tick(world: &mut World, delta_micro: f32) {
                                 let dx = p1.x - p2.x;
                                 let dy = p1.y - p2.y;
                                 let dsq = dx * dx + dy * dy;
-                                // min_dist = 1, r = 0.5
-                                if dsq < 1.0 {
+                                if dsq < min_dist_sq {
                                     let d = dsq.sqrt();
                                     let nx = dx / d;
                                     let ny = dy / d;
-                                    let dm = 0.5 * response_coef * (d - 1.0);
+                                    let dm = 0.5 * response_coef * (d - min_dist_sq.sqrt());
                                     p1.x -= nx * 0.5 * dm;
                                     p1.y -= ny * 0.5 * dm;
                                     p2.x += nx * 0.5 * dm;
@@ -106,8 +106,8 @@ pub(crate) fn tick(world: &mut World, delta_micro: f32) {
         });
 
         // update pos + cell
+        let removes = Arc::new(Mutex::new(vec![]));
         (0..world.cells.len()).into_par_iter().for_each(|x| {
-            let mut removes = vec![];
             for y in 0..world.cells[x].len() {
                 unsafe { mutate(world) }.cells[x][y].retain_mut(|p| {
                     let dx = p.x - p.px;
@@ -119,14 +119,14 @@ pub(crate) fn tick(world: &mut World, delta_micro: f32) {
                     p.ax = 0.0;
                     p.ay = 0.0;
                     if p.x as usize != x || p.y as usize != y {
-                        removes.push(p.clone());
+                        removes.lock().unwrap().push(p.clone());
                         false
                     } else { true }
                 });
             }
-            for r in removes {
-                unsafe { mutate(world) }.add_particle(r)
-            }
+        });
+        removes.lock().unwrap().to_vec().into_iter().for_each(|p| {
+            world.add_particle(p)
         });
     }
 }

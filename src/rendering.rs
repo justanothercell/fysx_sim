@@ -5,6 +5,7 @@ use sdl2::pixels::Color;
 use sdl2::rect::Point;
 use sdl2::ttf::{Font, Sdl2TtfContext};
 use sdl2::video::{WindowContext};
+use crate::util::hsv_to_rgb;
 use crate::world::World;
 
 pub(crate) struct SDLWindow {
@@ -73,15 +74,20 @@ pub(crate) fn render(world: &World, window: &mut SDLWindow, paused: bool, delta:
 
     for x in 0..world.cells.len() {
         for y in 0..world.cells[x].len() {
-            for p in &world.cells[x][y] {
-                window.canvas.set_draw_color(Color::from(p.color));
-                window.canvas.draw_point(Point::new(p.x as i32, p.y as i32)).unwrap();
+            if world.cells[x][y].len() > 0 {
+                window.canvas.set_draw_color(world.cells[x][y][0].color);
+                window.canvas.draw_point(Point::new(x as i32, y as i32)).unwrap();
             }
+            /*for p in &world.cells[x][y] {
+                //window.canvas.set_draw_color(Color::from(p.color));
+                window.canvas.set_draw_color(hsv_to_rgb(f32::acos((p.x-p.px)/(p.y-p.py)) * 180.0, 1.0, 1.0));
+                window.canvas.draw_point(Point::new(p.x as i32, p.y as i32)).unwrap();
+            }*/
         }
     }
 
     text!(window, 10, 10,
-        &format!("{:3.1}mspt {:6.1}tps {} p: {particles}",
+        &format!("{:4.1}mspt {:6.1}tps {} p: {particles}",
             delta / 1000.0, 1000_000.0 / delta as f32,
             if paused { "paused".to_string() } else { format!("") }
         ), (255, 255, 255));
