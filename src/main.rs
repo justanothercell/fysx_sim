@@ -50,7 +50,7 @@ fn run(mut world: World, mut window: SDLWindow) {
             let mouse = MouseState::new(&window.event_pump);
             if mouse.left() {
                 for x in mouse.x().sub(2).max(0)..mouse.x().add(2).min(world.width as i32 - 1) {
-                    for y in mouse.y().sub(52).max(0)..mouse.y().add(2).min(world.height as i32 - 1) {
+                    for y in mouse.y().sub(2).max(0)..mouse.y().add(2).min(world.height as i32 - 1) {
                         world.add_particle(Particle::new(
                             x as f32 + unsafe { rand() } as f32 / c_int::MAX as f32,
                             y as f32 + unsafe { rand() } as f32 / c_int::MAX as f32,
